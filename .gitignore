@@ -8,6 +8,7 @@ database.db
 __pycache__/
 *.py[cod]
 *$py.class
+/uploads
 
 # C extensions
 *.so
