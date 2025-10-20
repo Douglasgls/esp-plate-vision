@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from io import BytesIO
 import numpy as np
 import PIL.Image
-from uteis import validate_plate
+from uteis import get_plate_info, distancia_ponderada
 from PIL import Image
 import io
 from datetime import datetime
@@ -26,13 +26,20 @@ async def validate_plate_image(file: UploadFile = File(...)):
 
     img_np = np.array(image)
 
-    plate = await validate_plate(img_np)
+    plate = await get_plate_info(img_np)
+
+    plate_valida = 'BEE4R2P' #TODO VALOR MOCADO
+    is_valid = distancia_ponderada(plate_valida, plate['plate'])
 
     return JSONResponse(
-        content=plate
+        {
+            "placa_ocr": plate['plate'], 
+            "similaridade": is_valid['similaridade'],
+            "similaridade_pct": is_valid['similaridade_pct'],
+            "custo_total": is_valid['custo_total'],
+            "detalhes": is_valid['detalhes']
+        }
     )
-
-
 
 @router.post("/uploadfile")
 async def create_upload_file(request: Request):
