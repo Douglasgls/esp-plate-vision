@@ -1,4 +1,3 @@
-from urllib import request
 from fastapi import APIRouter, Request
 
 from fastapi import UploadFile, File
@@ -6,7 +5,7 @@ from fastapi.responses import JSONResponse
 from io import BytesIO
 import numpy as np
 import PIL.Image
-from uteis import get_plate_info, distancia_ponderada
+from app.uteis import get_plate_info, distancia_ponderada
 from PIL import Image
 import io
 from datetime import datetime
