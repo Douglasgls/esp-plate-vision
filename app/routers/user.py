@@ -20,7 +20,7 @@ async def listar_usuarios():
 async def obter_usuario(usuario_id: int):
     usuario = await UserService.buscar_por_id(usuario_id)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return usuario
 
 
@@ -29,11 +29,11 @@ async def criar_usuario(usuario: UsuarioCreate):
     return await UserService.criar(usuario)
 
 
-@router.put("/{usuario_id}", response_model=UsuarioOut)
+@router.patch("/{usuario_id}", response_model=UsuarioOut)
 async def atualizar_usuario(usuario_id: int, dados: UsuarioUpdate):
     usuario = await UserService.atualizar(usuario_id, dados)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return usuario
 
 
@@ -41,5 +41,5 @@ async def atualizar_usuario(usuario_id: int, dados: UsuarioUpdate):
 async def deletar_usuario(usuario_id: int):
     sucesso = await UserService.deletar(usuario_id)
     if not sucesso:
-        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return None

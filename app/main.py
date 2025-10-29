@@ -5,9 +5,20 @@ from contextlib import asynccontextmanager
 from app.models.user import User
 
 from app.routers.plate import router as plate_router
+
 from app.routers.user import router as user_router
 
 from app.core.database import init_db
+
+from app.routers.client import router as client_router
+
+from app.routers.spot import router as spot_router
+
+from app.routers.device import router as device_router
+
+from app.routers.reservation import router as reservation_router
+
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -50,6 +61,22 @@ app.include_router(
     prefix="/api",
     router=user_router
 )
+
+app.include_router(
+    prefix="/api",
+    router=client_router)
+
+app.include_router(
+    prefix="/api",
+    router=spot_router)
+
+app.include_router(
+    prefix="/api", 
+    router=device_router)
+
+app.include_router(
+    prefix="/api", 
+    router=reservation_router)
 
 @app.get("/")
 def read_root():
