@@ -11,7 +11,7 @@ class User(Model):
     updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
-        table = "usuario"
+        table = "usuarios"
         ordering = ["name"]
 
     def __str__(self):

@@ -6,7 +6,7 @@ class Spot(Model):
     name = fields.CharField(max_length=20)
 
     class Meta:
-        table = "parking_spot"
+        table = "vagas"
         ordering = ["id"]
 
     def __str__(self):

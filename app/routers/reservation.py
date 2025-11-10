@@ -4,14 +4,16 @@ from app.schemas.reservation import ReservationCreate, ReservationUpdate, Reserv
 from app.service.reservation import ReservationService
 
 router = APIRouter(
-    prefix="/reservation",
-    tags=["reservation"],
+    prefix="/reservations",
+    tags=["reservations"],
     responses={404: {"description": "Not found"}},
 )
+
 
 @router.get("/", response_model=List[ReservationOut])
 async def list_reservations():
     return await ReservationService.list_all()
+
 
 @router.get("/{reservation_id}", response_model=ReservationOut)
 async def get_reservation(reservation_id: int):
@@ -20,9 +22,11 @@ async def get_reservation(reservation_id: int):
         raise HTTPException(status_code=404, detail="Reservation not found")
     return reservation
 
+
 @router.post("/", response_model=ReservationOut, status_code=status.HTTP_201_CREATED)
 async def create_reservation(data: ReservationCreate):
     return await ReservationService.create(data)
+
 
 @router.patch("/{reservation_id}", response_model=ReservationOut)
 async def update_reservation(reservation_id: int, data: ReservationUpdate):
@@ -30,6 +34,7 @@ async def update_reservation(reservation_id: int, data: ReservationUpdate):
     if not reservation:
         raise HTTPException(status_code=404, detail="Reservation not found")
     return reservation
+
 
 @router.delete("/{reservation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_reservation(reservation_id: int):

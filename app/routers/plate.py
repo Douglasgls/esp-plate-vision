@@ -1,60 +1,61 @@
-from fastapi import APIRouter, Request
-
-from fastapi import UploadFile, File
+from fastapi import APIRouter, Request, UploadFile, File, HTTPException, status
 from fastapi.responses import JSONResponse
 from io import BytesIO
 import numpy as np
-import PIL.Image
-from app.uteis import get_plate_info, distancia_ponderada
-from PIL import Image
-import io
+from PIL import Image, UnidentifiedImageError
 from datetime import datetime
+from app.uteis import get_plate_info, distancia_ponderada
+
 
 
 router = APIRouter(
-    prefix="/plate",
-    tags=["plate"],
+    prefix="/plates",
+    tags=["plates"],
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.post("/validate")
 async def validate_plate_image(file: UploadFile = File(...)):
+    """
+    Validate a license plate image by comparing it to a reference plate.
+    """
     contents = await file.read()
-
-    image = PIL.Image.open(BytesIO(contents)).convert("RGB")
-
+    image = Image.open(BytesIO(contents)).convert("RGB")
     img_np = np.array(image)
 
-    plate = await get_plate_info(img_np)
+    plate_info = await get_plate_info(img_np)
 
-    plate_valida = 'BEE4R2P' #TODO VALOR MOCADO
-    is_valid = distancia_ponderada(plate_valida, plate['plate'])
+    mocked_plate = "BEE4R2P"  # TODO: Mocked value
+    is_valid = distancia_ponderada(mocked_plate, plate_info["plate"])
 
-    return JSONResponse(
-        {
-            "placa_ocr": plate['plate'], 
-            "similaridade": is_valid['similaridade'],
-            "similaridade_pct": is_valid['similaridade_pct'],
-            "custo_total": is_valid['custo_total'],
-            "detalhes": is_valid['detalhes']
-        }
-    )
 
-@router.post("/uploadfile")
-async def create_upload_file(request: Request):
+    return {"valid": is_valid}
+
+
+@router.post("/upload")
+async def upload_plate_image(request: Request):
+    """
+    Receives a raw image (JPEG/PNG) and saves it as a PNG file in the uploads directory.
+    """
     try:
         data = await request.body()
+        image = Image.open(io.BytesIO(data))
 
-        image_jpg = Image.open(io.BytesIO(data))
-
-        file_temp_now = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"uploads/camera_{file_temp_now}.png" 
-        image_jpg.save(filename, format="PNG")
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"uploads/camera_{timestamp}.png"
+        image.save(filename, format="PNG")
 
         return {"filename": filename}
 
-    except Image.UnidentifiedImageError:
-        return {"error": "Could not identify image file. Check file format/contents."}, 400
+    except UnidentifiedImageError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image format or unreadable file."
+        )
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return {"error": "An unexpected error occurred"}, 500
+        print(f"Unexpected error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while processing the image."
+        )

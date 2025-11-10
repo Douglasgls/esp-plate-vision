@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class SpotBase(BaseModel):
-    name: str
+    number: str
+    status: Optional[str] = "available"
 
 
 class SpotCreate(SpotBase):
@@ -10,7 +12,8 @@ class SpotCreate(SpotBase):
 
 
 class SpotUpdate(BaseModel):
-    name: Optional[str] = None
+    number: Optional[str] = None
+    status: Optional[str] = None
 
 
 class SpotOut(SpotBase):
