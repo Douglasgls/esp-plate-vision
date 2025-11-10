@@ -4,17 +4,17 @@ from enum import Enum
 
 class ReservationStatus(str, Enum):
     ACTIVE = "ATIVO"
-    COMPLETED = "COMPLETADO"
+    COMPLETED = "CONCLUIDO"
     CANCELLED = "CANCELADO"
 
 class SpotState(str, Enum):
     WAITING = "ESPERANDO"
     IN_USE = "EM_USO"
-    EMPTY = "VAGO"
+    EMPTY = "VAZIO"
 
 class Reservation(Model):
     id = fields.IntField(pk=True)
-    parking_spot = fields.ForeignKeyField("models.Spot", related_name="reservations")
+    spot = fields.ForeignKeyField("models.Spot", related_name="reservations")
     client = fields.ForeignKeyField("models.Client", related_name="reservations")
     start_time = fields.DatetimeField()
     end_time = fields.DatetimeField()
@@ -22,7 +22,8 @@ class Reservation(Model):
         enum_type=ReservationStatus,
         description="Reservation status"
     )
-    current_spot_state = fields.CharEnumField(
+    
+    status_spot = fields.CharEnumField(
         enum_type=SpotState,
         description="Current parking spot state"
     )

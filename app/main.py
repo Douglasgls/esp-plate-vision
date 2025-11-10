@@ -26,20 +26,17 @@ async def lifespan(app: FastAPI):
 
     await init_db()
     
-    user_jane = await User.create(name="Jane_Doe", email="jane@email.com", password="5678")
-    print("Usuário temporário Jane criado:", user_jane)
+    await User.create(name="Jane_Doe", email="jane@email.com", password="5678")
 
     yield 
 
     try:
         user_to_delete = await User.get(name="Jane_Doe")
         await user_to_delete.delete()
-        print(f"Usuário {user_to_delete.name} excluído com sucesso.")
     except Exception as e:
-        print(f"Erro ao deletar usuário Jane: {e}")
+        pass
     await Tortoise.close_connections()
-    print("======== FINISH-DB & CONNECTIONS CLOSED ========")
-
+    
 app = FastAPI(
     title="EncontraPlaca API",
     description="API para detecção e validação de placas de veículos no Brasil",

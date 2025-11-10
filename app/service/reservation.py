@@ -9,13 +9,13 @@ class ReservationService:
     @staticmethod
     async def list_all() -> List[Reservation]:
         """Retorna todas as reservas cadastradas, incluindo cliente, vaga e veículo associados."""
-        return await Reservation.all().prefetch_related("customer", "parking_spot", "vehicle")
+        return await Reservation.all().prefetch_related("client", "spot")
 
     @staticmethod
     async def get_by_id(reservation_id: int) -> Optional[Reservation]:
         """Busca uma reserva pelo ID, incluindo cliente, vaga e veículo associados."""
         return await Reservation.get_or_none(id=reservation_id).prefetch_related(
-            "customer", "parking_spot", "vehicle"
+            "client", "spot"
         )
 
     @staticmethod
