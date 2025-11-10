@@ -3,9 +3,9 @@ from tortoise.models import Model
 from enum import Enum
 
 class DeviceStatus(str, Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    ERROR = "error"
+    ACTIVE = "ATIVO"
+    INACTIVE = "INATIVO"
+    ERROR = "ERRO"
 
 class Device(Model):
     id = fields.IntField(pk=True)

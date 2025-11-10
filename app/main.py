@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from tortoise import Tortoise
+
 from contextlib import asynccontextmanager
+from app.core.database import init_db
 
 from app.models.user import User
 
 from app.routers.plate import router as plate_router
 
 from app.routers.user import router as user_router
-
-from app.core.database import init_db
 
 from app.routers.client import router as client_router
 

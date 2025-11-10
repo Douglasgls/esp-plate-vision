@@ -3,14 +3,14 @@ from tortoise.models import Model
 from enum import Enum
 
 class ReservationStatus(str, Enum):
-    ACTIVE = "active"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
+    ACTIVE = "ATIVO"
+    COMPLETED = "COMPLETADO"
+    CANCELLED = "CANCELADO"
 
 class SpotState(str, Enum):
-    WAITING = "waiting"
-    IN_USE = "in_use"
-    EMPTY = "empty"
+    WAITING = "ESPERANDO"
+    IN_USE = "EM_USO"
+    EMPTY = "VAGO"
 
 class Reservation(Model):
     id = fields.IntField(pk=True)
