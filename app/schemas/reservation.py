@@ -5,7 +5,7 @@ from datetime import datetime
 
 class ReservationBase(BaseModel):
     customer_id: int = Field(..., description="ID do cliente associado à reserva")
-    parking_spot_id: int = Field(..., description="ID da vaga de estacionamento")
+    spot_id: int = Field(..., description="ID da vaga de estacionamento")
     vehicle_id: int = Field(..., description="ID do veículo reservado")
     start_time: datetime = Field(..., description="Data e hora de início da reserva")
     end_time: datetime = Field(..., description="Data e hora de término da reserva")
@@ -20,7 +20,7 @@ class ReservationCreate(ReservationBase):
 class ReservationUpdate(BaseModel):
     """Schema usado para atualização parcial (PATCH) de uma reserva."""
     customer_id: Optional[int] = Field(None, description="Novo ID do cliente")
-    parking_spot_id: Optional[int] = Field(None, description="Novo ID da vaga")
+    spot_id: Optional[int] = Field(None, description="Novo ID da vaga")
     vehicle_id: Optional[int] = Field(None, description="Novo ID do veículo")
     start_time: Optional[datetime] = Field(None, description="Nova data/hora de início")
     end_time: Optional[datetime] = Field(None, description="Nova data/hora de término")

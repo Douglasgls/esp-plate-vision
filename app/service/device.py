@@ -1,7 +1,7 @@
 from typing import List, Optional
 from app.models.device import Device
 from app.schemas.device import DeviceCreate, DeviceUpdate
-
+from app.models.spot import Spot
 
 class DeviceService:
     """Service layer para operações CRUD de dispositivos."""
@@ -9,17 +9,25 @@ class DeviceService:
     @staticmethod
     async def list_all() -> List[Device]:
         """Retorna todos os dispositivos cadastrados, incluindo a vaga associada."""
-        return await Device.all().prefetch_related("parking_spot")
+        return await Device.all().prefetch_related("spot")
 
     @staticmethod
     async def get_by_id(device_id: int) -> Optional[Device]:
         """Busca um dispositivo pelo ID, incluindo a vaga associada."""
-        return await Device.get_or_none(id=device_id).prefetch_related("parking_spot")
+        return await Device.get_or_none(id=device_id).prefetch_related("spot")
 
     @staticmethod
     async def create(data: DeviceCreate) -> Device:
         """Cria um novo dispositivo."""
-        device = await Device.create(**data.dict())
+        data_dict = data.dict()
+
+        print(data_dict)
+        spot_id = data_dict.pop("spot_id") 
+        spot_obj = await Spot.get(id=spot_id)
+
+        data_dict["spot"] = spot_obj 
+
+        device = await Device.create(**data_dict)
         return device
 
     @staticmethod

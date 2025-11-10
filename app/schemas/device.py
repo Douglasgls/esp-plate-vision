@@ -5,9 +5,8 @@ from datetime import datetime
 
 class DeviceBase(BaseModel):
     spot_id: int = Field(..., description="ID da vaga associada ao dispositivo")
-    status: Literal["active", "inactive", "error"] = Field(..., description="Status atual do dispositivo")
+    status: Literal["ATIVO", "INATIVO", "ERRO"] = Field(..., description="Status atual do dispositivo")
     chip_id: constr(max_length=50) = Field(..., description="Identificador único do chip do dispositivo")
-    last_communication: Optional[datetime] = Field(None, description="Data/hora da última comunicação do dispositivo")
 
 
 class DeviceCreate(DeviceBase):

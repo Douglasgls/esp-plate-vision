@@ -9,10 +9,10 @@ class DeviceStatus(str, Enum):
 
 class Device(Model):
     id = fields.IntField(pk=True)
-    parking_spot = fields.ForeignKeyField("models.Spot", related_name="devices")
+    spot = fields.ForeignKeyField("models.Spot", related_name="devices")
     status = fields.CharEnumField(
         enum_type=DeviceStatus,
-        description="Current device state"
+        description="Status do dispositivo"
     )
     chip_id = fields.CharField(max_length=50, unique=True)
     last_communication = fields.DatetimeField(null=True)
