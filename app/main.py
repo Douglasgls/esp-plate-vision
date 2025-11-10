@@ -18,17 +18,26 @@ from app.routers.device import router as device_router
 
 from app.routers.reservation import router as reservation_router
 
+from app.mqtt_client import mqttc, BROKER_HOST, BROKER_PORT
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("======== STARTED-DB & SCHEMA GENERATED ========")
 
+
+    mqttc.connect(BROKER_HOST, BROKER_PORT, 60)
+    mqttc.loop_start()
+    
     await init_db()
     
+   
     await User.create(name="Jane_Doe", email="jane@email.com", password="5678")
 
     yield 
+
+    mqttc.loop_stop()
+    mqttc.disconnect()
 
     try:
         user_to_delete = await User.get(name="Jane_Doe")

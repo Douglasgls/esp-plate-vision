@@ -1,61 +1,78 @@
-from fastapi import APIRouter, Request, UploadFile, File, HTTPException, status
-from fastapi.responses import JSONResponse
-from io import BytesIO
-import numpy as np
-from PIL import Image, UnidentifiedImageError
-from datetime import datetime
-from app.uteis import get_plate_info, distancia_ponderada
+from fastapi import APIRouter, UploadFile, File, HTTPException, Response
+from app.uteis import distancia_ponderada, save_uploaded_image_as_png, get_plate_text
+from fastapi import WebSocket
+import asyncio
+from app.mqtt_client import mqttc 
 
-
+connections = []
 
 router = APIRouter(
-    prefix="/plates",
-    tags=["plates"],
+    prefix="/plate",
+    tags=["plate"],
     responses={404: {"description": "Not found"}},
 )
 
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    connections.append(websocket)
+    print(f"Cliente conectado: {websocket.client}")
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except Exception as e:
+        print(f"Cliente desconectado: {websocket.client}")
+    finally:
+        if websocket in connections:
+            connections.remove(websocket)
 
 @router.post("/validate")
-async def validate_plate_image(file: UploadFile = File(...)):
-    """
-    Validate a license plate image by comparing it to a reference plate.
-    """
-    contents = await file.read()
-    image = Image.open(BytesIO(contents)).convert("RGB")
-    img_np = np.array(image)
+async def validate_plate_image(
+    file: UploadFile = File(...),
+    id: str = None,
+    status: str = None
+):
 
-    plate_info = await get_plate_info(img_np)
+    if not file.filename.lower().endswith(('.jpg', '.jpeg', '.png')):
+        raise HTTPException(status_code=400, detail="Arquivo de imagem inválido.")
+    
+    if not file or not file.filename:
+        raise HTTPException(status_code=400, detail="Nenhuma imagem enviada.")
+    
+    if status not in ['LIVRE', 'OCUPADO']:
+        raise HTTPException(status_code=400, detail="Status inválido.")
+    
+    await save_uploaded_image_as_png(file, id)
 
-    mocked_plate = "BEE4R2P"  # TODO: Mocked value
-    is_valid = distancia_ponderada(mocked_plate, plate_info["plate"])
+    plate = await get_plate_text(file)
+
+    plate_valida = 'BEE4R2P' # Pegar do banco baseado no id do spot e dia da semana
+    
+    is_valid = distancia_ponderada(plate_valida, plate['plate'])
+
+    disconnected = []
+    for connection in connections:
+        try:
+            await connection.send_json({
+                "plate_ocr": plate['plate'],
+                "plate_db": plate_valida,
+                "status": status,
+                "id": id,
+                "valid": is_valid
+            })
+        except Exception:
+            disconnected.append(connection)
+
+    for dc in disconnected:
+        if dc in connections:
+            connections.remove(dc)
 
 
-    return {"valid": is_valid}
+    return Response(status_code=204)
 
-
-@router.post("/upload")
-async def upload_plate_image(request: Request):
-    """
-    Receives a raw image (JPEG/PNG) and saves it as a PNG file in the uploads directory.
-    """
-    try:
-        data = await request.body()
-        image = Image.open(io.BytesIO(data))
-
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"uploads/camera_{timestamp}.png"
-        image.save(filename, format="PNG")
-
-        return {"filename": filename}
-
-    except UnidentifiedImageError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid image format or unreadable file."
-        )
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while processing the image."
-        )
+@router.post("/take_picture/{spot_id}/{command}")
+def enviar_comando(spot_id: str, command: str):
+    topic = f"api_vision/spot/{spot_id}"
+    mqttc.publish(topic, command)
+    print(f"Publicado no tópico {topic} o comando: {command}")
+    return {"status": "ok", "topico": topic, "comando": command}

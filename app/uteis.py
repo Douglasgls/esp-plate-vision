@@ -1,7 +1,12 @@
 import re
 import easyocr
 import numpy as np
-import string
+from fastapi import HTTPException,UploadFile
+from PIL import Image, UnidentifiedImageError 
+import io
+from datetime import datetime
+import os 
+import cv2
 
 def only_letters_numbers(text: str) -> bool:
     """
@@ -64,15 +69,8 @@ def distancia_ponderada(plate_valid: str, plate_ocr: str) -> dict:
     Retorna dicionário com pontuação total, similaridade e detalhes.
     """
 
-    # --- Verificação inicial ---
     if len(plate_valid) != TAMANHO_PLACA or len(plate_ocr) != TAMANHO_PLACA:
-        return {
-            "similaridade": 0.0,
-            "similaridade_pct": 0.0,
-            "detalhes": [{
-                "explicacao": f"Tamanho inválido - placa deve ter {TAMANHO_PLACA} caracteres (recebidos {len(plate_ocr)})"
-            }]
-        }
+        return HTTPException(status_code=400, detail="Placas devem ter exatamente 7 caracteres.")
 
     custo_total = 70
     ordemCertaPosAnterior = False
@@ -135,3 +133,65 @@ def distancia_ponderada(plate_valid: str, plate_ocr: str) -> dict:
         "custo_total": custo_total,
         "detalhes": detalhes
     }
+
+async def save_uploaded_image_as_png(file: UploadFile, spot_id: str) -> str:
+    """
+    Recebe um UploadFile (JPG), converte para PNG e salva na pasta uploads/.
+    Retorna o caminho completo do arquivo salvo.
+    """
+
+    os.makedirs(f'uploads/vaga-{spot_id}', exist_ok=True)
+
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M")
+        filename = f"{spot_id}-{timestamp}.png"
+        filepath = os.path.join(f'uploads/vaga-{spot_id}', filename)
+
+        image.save(filepath, format="PNG")
+
+        return filepath
+
+    except UnidentifiedImageError:
+        raise ValueError("Arquivo de imagem inválido ou corrompido.")
+    except Exception as e:
+        print(f"Erro ao salvar imagem: {e}")
+        raise e
+
+
+async def get_plate_text(file) -> dict:
+    """
+    Lê a imagem do arquivo, aplica técnicas de melhoria e retorna o texto da placa.
+    """
+    try:
+        await file.seek(0)
+        contents = await file.read()
+
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
+
+        img_np = np.array(image)
+
+        gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)               # Escala de cinza
+        gray = cv2.bilateralFilter(gray, 11, 17, 17)                  # Remoção de ruído suave
+        gray = cv2.equalizeHist(gray)                                 # Equalização de histograma
+        gray = cv2.convertScaleAbs(gray, alpha=1.5, beta=0)           # Aumenta contraste
+        gray = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]  # Binarização adaptativa
+
+        processed_img = Image.fromarray(gray)
+
+        processed_np = np.array(processed_img)
+
+        plate = await get_plate_info(processed_np)
+
+        return {
+            "plate": plate["plate"] if isinstance(plate, dict) and "plate" in plate else plate,
+            "confidence": plate.get("confidence", None) if isinstance(plate, dict) else None
+        }
+
+    except UnidentifiedImageError:
+        raise ValueError("Erro: arquivo de imagem inválido ou corrompido.")
+    except Exception as e:
+        print(f"Erro ao processar imagem: {e}")
+        raise e
