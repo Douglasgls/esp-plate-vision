@@ -3,8 +3,7 @@ from typing import Optional
 
 
 class SpotBase(BaseModel):
-    number: str
-    status: Optional[str] = "available"
+    name: str
 
 
 class SpotCreate(SpotBase):
@@ -12,8 +11,7 @@ class SpotCreate(SpotBase):
 
 
 class SpotUpdate(BaseModel):
-    number: Optional[str] = None
-    status: Optional[str] = None
+    name: Optional[str] = None
 
 
 class SpotOut(SpotBase):
