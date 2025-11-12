@@ -8,7 +8,6 @@ class ReservationStatus(str, Enum):
     CANCELLED = "CANCELADO"
 
 class SpotState(str, Enum):
-    WAITING = "ESPERANDO"
     IN_USE = "EM_USO"
     EMPTY = "VAZIO"
 
@@ -16,8 +15,7 @@ class Reservation(Model):
     id = fields.IntField(pk=True)
     spot = fields.ForeignKeyField("models.Spot", related_name="reservations")
     client = fields.ForeignKeyField("models.Client", related_name="reservations")
-    start_time = fields.DatetimeField()
-    end_time = fields.DatetimeField()
+    day = fields.DateField()
     status = fields.CharEnumField(
         enum_type=ReservationStatus,
         description="Reservation status"
@@ -30,7 +28,7 @@ class Reservation(Model):
 
     class Meta:
         table = "reservas"
-        ordering = ["start_time"]
+        ordering = ["day"]
 
     def __str__(self):
         return f"Reservation {self.id} - {self.status.value}"

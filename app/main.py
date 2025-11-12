@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from tortoise import Tortoise
 
 from contextlib import asynccontextmanager
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     
    
-    await User.create(name="Jane_Doe", email="jane@email.com", password="5678")
+    # await User.create(name="Jane_Doe", email="jane@email.com", password="5678")
 
     yield 
 
@@ -55,6 +56,19 @@ app = FastAPI(
         "url": "https://github.com/douglasgls",
     },
     lifespan=lifespan
+)
+
+origins = [
+    "http://localhost:5173",  # exemplo: Vite em desenvolvimento
+    "http://localhost:3000",  # exemplo: React CRA
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,            # URLs permitidas
+    allow_credentials=True,           # se quiser permitir cookies/autenticação
+    allow_methods=["*"],              # métodos permitidos (GET, POST, etc)
+    allow_headers=["*"],              # headers permitidos
 )
 
 # Routers

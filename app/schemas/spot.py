@@ -3,16 +3,18 @@ from typing import Optional
 
 
 class SpotBase(BaseModel):
-    name: str
+    spot: int
+    sector: str
 
 
 class SpotCreate(SpotBase):
-    pass
+    spot: int
+    sector: str
 
 
 class SpotUpdate(BaseModel):
-    name: Optional[str] = None
-
+    spot: Optional[int] = None
+    sector: Optional[str] = None
 
 class SpotOut(SpotBase):
     id: int

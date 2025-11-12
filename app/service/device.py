@@ -21,7 +21,8 @@ class DeviceService:
         """Cria um novo dispositivo."""
         data_dict = data.dict()
 
-        print(data_dict)
+        data_dict["onecode"] = str(data_dict["onecode"]).upper()
+
         spot_id = data_dict.pop("spot_id") 
         spot_obj = await Spot.get(id=spot_id)
 
