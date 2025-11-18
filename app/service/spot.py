@@ -41,3 +41,14 @@ class SpotService:
         """Deleta uma vaga pelo ID."""
         deleted_count = await Spot.filter(id=spot_id).delete()
         return deleted_count > 0
+    
+    @staticmethod
+    async def update_status(spot_id: int, current_status: str, alert_status: str = None) -> bool:
+        """Atualiza o status da vaga."""
+        spot = await Spot.get_or_none(id=spot_id)
+        if not spot:
+            return False
+        spot.current_status = current_status
+        spot.alert_status = alert_status
+        await spot.save()
+        return True

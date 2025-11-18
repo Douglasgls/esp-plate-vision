@@ -1,5 +1,7 @@
 from typing import List, Optional
 from app.models.reservation import Reservation
+from app.service.spot import SpotService
+from app.schemas.spot import SpotUpdate
 from app.schemas.reservation import ReservationCreate, ReservationUpdate
 
 
@@ -22,6 +24,8 @@ class ReservationService:
     async def create(data: ReservationCreate) -> Reservation:
         """Cria uma nova reserva."""
         reservation = await Reservation.create(**data.dict())
+        spot_update = SpotUpdate(status="RESERVADO")
+        await SpotService.update(data.spot_id, spot_update) 
         return reservation
 
     @staticmethod

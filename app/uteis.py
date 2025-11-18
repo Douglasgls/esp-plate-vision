@@ -69,8 +69,9 @@ def distancia_ponderada(plate_valid: str, plate_ocr: str) -> dict:
     Retorna dicionário com pontuação total, similaridade e detalhes.
     """
 
-    if len(plate_valid) != TAMANHO_PLACA or len(plate_ocr) != TAMANHO_PLACA:
-        return HTTPException(status_code=400, detail="Placas devem ter exatamente 7 caracteres.")
+    if plate_ocr:
+        if len(plate_valid) != TAMANHO_PLACA or len(plate_ocr) != TAMANHO_PLACA:
+            return HTTPException(status_code=400, detail="Placas devem ter exatamente 7 caracteres.")
 
     custo_total = 70
     ordemCertaPosAnterior = False

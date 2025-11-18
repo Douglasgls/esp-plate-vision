@@ -3,21 +3,26 @@ from typing import Optional
 
 
 class SpotBase(BaseModel):
-    spot: int
+    number: int
     sector: str
 
 
 class SpotCreate(SpotBase):
-    spot: int
+    number: int
     sector: str
 
 
 class SpotUpdate(BaseModel):
-    spot: Optional[int] = None
+    number: Optional[int] = None
     sector: Optional[str] = None
+    status : Optional[str] = None
+    alert_status : Optional[str] = None
 
 class SpotOut(SpotBase):
     id: int
+    current_status: Optional[str] = None
+    status: Optional[str] = None
+    alert_status: Optional[str] = None
 
     class Config:
         orm_mode = True
